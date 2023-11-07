@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  database:
+    image: postgres
+    restart: always
+    env_file:
+      - ../environment/database.env
+    healthcheck:
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 120
+    volumes:
+      - ./entrypoint/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./postgresql-data:/var/lib/postgresql
+
+  web:
+    image: d3cryptofc/orificeplatemanager
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/WEB
+    restart: always
+    ports:
+      - 80:8080
+    env_file:
+      - ../environment/database.env
+      - ../environment/web.env
+    depends_on:
+      database:
+        condition: service_healthy

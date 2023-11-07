@@ -1,0 +1,7 @@
+FROM python:latest
+WORKDIR /deploy
+COPY . /deploy
+RUN pip install poetry
+RUN poetry config virtualenvs.create false
+RUN poetry install
+CMD ["poetry", "run", "gunicorn", "app:create_app()", "-k", "gevent", "-b", "0.0.0.0:8080"]

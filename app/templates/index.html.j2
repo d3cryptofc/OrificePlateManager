@@ -1,0 +1,489 @@
+{% extends 'base.html.j2' %}
+
+{% block head %}
+    <title>Gestão de Placas de Orifício</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='components/multiselect.css') }}">
+{% endblock head %}
+
+{% block body %}
+<body class="py-lg-4 px-lg-5 py-md-4 px-md-4 px-sm-3 py-4 px-0 gap-3">
+    <header class="mb-md-2 px-2 pt-{% if operator %}2{% else %}4{% endif %} px-sm-0 d-flex flex-column align-items-center text-secondary">
+        <div>
+            <div class="text-center">
+                <span class="fw-bold fs-6">Gestão de Placas de Orifício</span>
+                <br>
+                <p>Expira às {{expiration_datetime}} em caso de inatividade</p>
+            </div>
+        </div>
+        
+        <div class="w-100 d-flex justify-content-between mt-2 mt-sm-0">
+            <div style="width: 120px">
+                {%- if operator %}
+                <a class="text-decoration-none" href="{{ url_for('views.admin') }}">
+                    <button class="btn btn-sm text-secondary" data-bs-toggle="tooltip" data-bs-placement="right" title="Finalizar sessão">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </a>
+                {%- else %}
+                <a class="text-decoration-none" href="{{ url_for('views.admin') }}">
+                    <button class="btn btn-sm text-secondary" data-bs-toggle="tooltip" data-bs-placement="right" title="Iniciar sessão">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                    </button>
+                </a>
+                {%- endif %}
+            </div>
+
+            <div>
+                <span class="text-nowrap bg-dark-3 fs-6 p-2 py-1 px-2 fw-bold {% if is_admin %}text-danger {% else %}text-secondary{% endif %} rounded">
+                    <i class="fa-solid fa-user"></i> {{ operator.login }}
+                </span>
+            </div>
+
+            {% if operator -%}
+            <div style="width: 120px">
+                {% if is_admin -%}
+                <span data-bs-toggle="modal" data-bs-target="#modal-add-new-or-edit-plate">
+                    <button id="add-new-plate" data-bs-toggle="tooltip" data-bs-placement="left" class="text-nowrap btn btn-sm fs-6 btn-outline-success border-dark-4 fw-bold float-end" title="Nova placa">
+                        <i class="fa-regular fa-plus"></i> Adicionar
+                    </button>
+                </span>
+                {%- endif %}
+            </div>
+            {%- else %}
+            <div style="width: 120px"></div>
+            {% endif %}
+        </div>
+    </header>
+    
+    <form class="text-light rounded p-3 p-md-4 plate-filter">
+        <div class="row gy-3">
+            <div class="col">
+                <label class="w-100">
+                    <div class="mb-2 fw-bold">Nº de série:</div>
+                    <input
+                        type="text"
+                        class="mw-100 form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                        placeholder="Ex: XXXXXXXXXXXXXXXXXXXX"
+                        name="serial_number"
+                    >
+                </label>
+            </div>
+
+            <div class="col">
+                <label class="w-100">
+                    <div class="mb-2 fw-bold">Nº de certificado:</div>
+                    <input
+                        type="text"
+                        class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                        placeholder="Ex: XXXXXXXXXXXXXXXXXXXX"
+                        name="certificate_number"
+                    >
+                </label>
+            </div>
+
+            <div class="col">
+                <label class="w-100">
+                    <div class="mb-2 fw-bold">Local:</div>
+                    <select multiple class="mt-2" data-placeholder="Ex: Catu / PE - Fazenda Alvorada">
+                    </select>
+                </label>
+            </div>
+        </div>
+
+        <div class="row mt-3 gy-3">
+            <div class="col col-12 col-sm-5 col-md-4">
+                <div class="mb-2 fw-bold">Situações:</div>
+
+                <label>
+                    <input name="status" type="checkbox" checked value="REMOVIDA"> Removida
+                </label>
+                <br>
+
+                <label>
+                    <input name="status" type="checkbox" checked value="RESERVADA"> Reservada
+                </label>
+                <br>
+
+                <label>
+                    <input name="status" type="checkbox" checked value="AGUARDANDO RETORNO"> Aguardando retorno
+                </label>
+                <br>
+
+                <label>
+                    <input name="status" type="checkbox" checked value="INSTALADA/OPERANDO"> Instalada ou operando
+                </label>
+            </div>
+
+            <div class="col">
+                <div class="mb-2 fw-bold">Tipos:</div>
+
+                <label>
+                    <input name="type" type="checkbox" checked value="VPP"> Válvula Porta Placa (VPP)
+                </label>
+                <br>
+
+                <label>
+                    <input name="type" type="checkbox" checked value="VEF"> Válvula Entre Flanges (VEF)
+                </label>
+            </div>
+        </div>
+
+        <button id="search" class="mt-3 float-end btn btn-sm fw-bold btn-outline-primary border-dark-4 me-1 fs-6" data-bs-toggle="tooltip" data-bs-placement="left" title="Procurar por registros">
+            <i class="fa-duotone fa-magnifying-glass"></i> Procurar
+        </button>
+    </form>
+
+    <div class="plate-cards-results d-flex flex-column gap-3"></div>
+
+    <!-- Modal: Loading spinner animation -->
+    <div class="modal modal-sm modal-fullscreen-lg-down" id="modal-loading" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark-2 text-secondary fs-6 p-4 rounded">
+                <div class="d-flex gap-2">
+                    <span class="spinner-border spinner-border-sm" role="status"></span> Carregando..
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div class="toast rounded-3 overflow-hidden" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body bg-success text-light fw-bold p-3 d-flex align-items-center">
+                <i class="fa-solid me-3"></i>
+                <span class="text-cente fs-6 shadow-1"></span>
+            </div>
+        </div>
+    </div>
+
+    {% if is_admin -%}
+    <!-- Modal: Replace plate -->
+    <div class="modal fade" id="modal-replace-plate" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content bg-dark-2 text-secondary">
+                <div class="modal-header fs-6 border-dark">
+                    <strong class="text-center w-100">Substituição</strong>
+                </div>
+
+                <div class="modal-body fs-6 pt-4 pb-0 fw-bold row gy-3">
+                    <div class="col col-12 col-md-6">
+                        <label class="w-100">
+                            <div class="mb-2 fw-bold">Nº de certificado:</div>
+                            <input
+                                type="text"
+                                class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                placeholder="Ex: XXXXXXXXXXXX"
+                                required
+                                name="certificate_number"
+                                minlength="9"
+                                maxlength="20"
+                            >
+                        </label>
+                    </div>
+
+                    <div class="col col-12 col-md-6">
+                        <label class="w-100">
+                            <div class="mb-2 fw-bold">URL do certificado:</div>
+                            <input
+                                required
+                                pattern="https://.*"
+                                type="url"
+                                class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                placeholder="Ex: https://exemplo.com"
+                                name="certificate_url"
+                                maxlength="255"
+                            >
+                        </label>
+                    </div>
+
+                    <div class="col col-12">
+                        <label class="w-100">
+                            <div class="fw-bold">Diâmetro ref. interno:</div>
+                            <input
+                                class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                type="number"
+                                name="internal_diameter_reference"
+                                placeholder="Ex: 24,48mm"
+                                step="0.01"
+                                required
+                            > 
+                        </label>
+                    </div>
+
+                    <div class="col col-12">
+                        <label class="w-100">
+                            <div class="mb-2 fw-bold">Motivo da substituição:</div>
+                            <textarea
+                                style="min-height: 120px;"
+                                minlength="10"
+                                maxlength="100"
+                                required
+                                name="reason"
+                                class="mw-100 form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                            ></textarea>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="reset" class="btn btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fa-regular fa-layer-plus"></i>
+                        Substituir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Delete plate registry -->
+    <div class="modal fade" id="modal-delete" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark-2 text-secondary">
+                <div class="modal-body fs-6 py-4 fw-bold">
+                    Você tem certeza que deseja deletar?
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal" id="confirm-delete-plate-row">
+                        <i class="fa-duotone fa-trash"></i>
+                        Deletar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add new or edit plate -->
+    <div data-mode="add" class="modal modal-lg modal-fullscreen-lg-down fade" id="modal-add-new-or-edit-plate" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content bg-dark-2 text-secondary">
+                <div class="modal-header fs-6 border-dark">
+                    <strong class="text-center w-100"></strong>
+                </div>
+                
+                <div class="modal-body fs-6 py-4">
+                    <div class="row row-gap-3">
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="mb-2 fw-bold">Nº de série:</div>
+                                <input
+                                    type="text"
+                                    class="mw-100 form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    placeholder="Ex: XXXXXXXXXXXXXXXXXXXX"
+                                    required
+                                    name="serial_number"
+                                    minlength="9"
+                                    maxlength="16"
+                                >
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="mb-2 fw-bold">Nº de certificado:</div>
+                                <input
+                                    type="text"
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    placeholder="Ex: XXXXXXXXXXXXXXXXXXXX"
+                                    required
+                                    name="certificate_number"
+                                    minlength="9"
+                                    maxlength="20"
+                                >
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="mb-2 fw-bold">URL do certificado:</div>
+                                <input
+                                    required
+                                    pattern="https://.*"
+                                    type="url"
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    placeholder="Ex: https://exemplo.com"
+                                    name="certificate_url"
+                                    maxlength="255"
+                                >
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Data de calibração:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="date"
+                                    name="calibration_date"
+                                    required
+                                > 
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Primeira instalação:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="date"
+                                    name="first_installation_date"
+                                > 
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Data de vencimento:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="date"
+                                    name="due_date"
+                                    required
+                                > 
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Diâmetro externo:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="number"
+                                    name="external_diameter"
+                                    placeholder="Ex: 50 pol."
+                                    step="0.01"
+                                    required
+                                > 
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Diâmetro ref. interno:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="number"
+                                    name="internal_diameter_reference"
+                                    placeholder="Ex: 24,48mm"
+                                    step="0.01"
+                                    required
+                                > 
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Local:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="text"
+                                    name="local"
+                                    placeholder="Ex: Catu / PE - Fazenda Alvorada"
+                                    minlength="5"
+                                    maxlength="40"
+                                    required
+                                > 
+                            </label>
+                        </div>
+
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="fw-bold">Ponto:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="text"
+                                    name="point"
+                                    placeholder="Ex: Tramo A"
+                                    minlength="5"
+                                    maxlength="20"
+                                    required
+                                > 
+                            </label>
+                        </div>
+                        
+                        <div class="col col-12 col-md-6 col-lg-4">
+                            <label class="w-100">
+                                <div class="mb-2 fw-bold" id="status-parameter-text">:</div>
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="date"
+                                    name="status_date"
+                                    maxlength="5"
+                                    maxlength="40"
+                                    required
+                                >
+                                <input
+                                    class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                    type="text"
+                                    name="status_local"
+                                    placeholder="Ex: Catu / PE - Fazenda Alvorada"
+                                    minlength="5"
+                                    maxlength="20"
+                                    required
+                                >
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col col-6 col-lg-4">
+                            <div class="mb-2 fw-bold">Situação</div>
+
+                            <label>
+                                <input type="radio" name="status_text" value="REMOVIDA" id="status-removed"> Removida
+                            </label>
+                            <br>
+
+                            <label>
+                                <input type="radio" name="status_text" value="RESERVADA" id="status-reserved"> Reservada
+                            </label>
+                            <br>
+                            
+                            <label>
+                                <input type="radio" name="status_text" value="AGUARDANDO RETORNO" id="status-awaiting-return"> Aguardando retorno
+                            </label>
+                            <br>
+
+                            <label>
+                                <input type="radio" name="status_text" value="INSTALADA/OPERANDO" id="status-installed" checked> Instalada ou operando
+                            </label>
+                        </div>
+
+                        <div class="col col-6 col-lg-4">
+                            <div class="mb-2 fw-bold">Tipo</div>
+                            
+                            <label>
+                                <input type="radio" name="type" value="VPP" checked> Válvula Porta Placa (VPP)
+                            </label>
+                            <br>
+
+                            <label>
+                                <input type="radio" name="type" value="VEF"> Válvula Entre Flanges (VEF)
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="reset" class="btn btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-success"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {%- endif %}
+
+    <script>
+        const IS_ADMIN = {{ (is_admin and 1) or 0 }};
+        const UI_TEMPLATE_FOLDER = '{{ url_for("static", filename="ui-templates") }}';
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://mozilla.github.io/nunjucks/files/nunjucks.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='components/multiselect.js') }}"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+{% endblock body %}

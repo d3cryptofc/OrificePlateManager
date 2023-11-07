@@ -1,0 +1,35 @@
+select[multiple] {
+    display: none;
+}
+
+.multiselect {
+    max-height: 300px;
+    overflow-x: auto;
+}
+
+.multiselect:not(:has(label)) {
+    padding: 0px !important;
+}
+
+.multiselect-option {
+    user-select: none;
+}
+
+.multiselect-option:hover, .multiselect-option:has(input:checked) {
+    background-color: var(--dark-4);
+    cursor: pointer;
+}
+
+.multiselect-option input {
+    position: relative;
+    transform: scale(1.1);
+    font-size: 12px;
+}
+
+.multiselect-option span {
+    color: #858585;
+}
+
+.multiselect-search, .multiselect-search::placeholder {
+    color: #AAA;
+}

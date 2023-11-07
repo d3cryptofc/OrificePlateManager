@@ -1,0 +1,121 @@
+body {
+    background-color: var(--dark-1);
+    display: flex;
+    min-height: 100vh;
+    font-family: Arial;
+    flex-direction: column;
+    font-size: 12px;
+}
+
+.plate-card {
+    color: #AAA;
+}
+
+.plate-card-header {
+    background-color: var(--dark-3);
+    padding: 15px;
+    border-radius: var(--radius-size) var(--radius-size) 0px 0px;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.plate-card-row {
+    padding: 20px;
+    background-color: var(--dark-2);
+    font-size: 10px;
+    overflow-x: auto;
+}
+.plate-card-row table td .badge {
+    font-size: 9px;
+}
+
+.plate-card-row:last-child {
+    border-radius: 0px 0px var(--radius-size) var(--radius-size);
+}
+
+.plate-card-row table th, .plate-card-row table td {
+    padding-bottom: 10px;
+    padding-left: 5px;
+    padding-right: 5px;
+    min-width: 30px;
+    text-wrap: nowrap;
+}
+.plate-card-row table tr:last-child td {
+    padding-bottom: 0;
+}
+
+div:has(button#add-new-plate-replacement) {
+    right: 0;
+    top: 0;
+}
+
+.plate-filter {
+    background-color: var(--dark-2);
+}
+
+.plate-filter input[type=text] {
+    min-width: 200px;
+}
+
+.plate-card-header span {
+    min-width: 250px;
+}
+
+.fw-bold:has(~ input[required], ~ textarea[required])::after {
+    content: ' *';
+    color: var(--bs-danger);
+}
+
+
+#modal-add-new-or-edit-plate:has(#status-removed:checked) #status-parameter-text::before {
+    content: 'Data de remoção';
+}
+#modal-add-new-or-edit-plate:has(#status-removed:checked) input[name="status_local"] {
+    display: none;
+}
+
+#modal-add-new-or-edit-plate:has(#status-reserved:checked) #status-parameter-text::before {
+    content: 'Local da reserva';
+}
+#modal-add-new-or-edit-plate:has(#status-reserved:checked) input[name="status_date"] {
+    display: none;
+}
+
+#modal-add-new-or-edit-plate:has(#status-awaiting-return:checked) #status-parameter-text,
+#modal-add-new-or-edit-plate:has(#status-awaiting-return:checked) input[name="status_date"],
+#modal-add-new-or-edit-plate:has(#status-awaiting-return:checked) input[name="status_local"] {
+    display: none;
+}
+
+#modal-add-new-or-edit-plate:has(#status-installed:checked) #status-parameter-text::before {
+    content: 'Data de instalação';
+}
+#modal-add-new-or-edit-plate:has(#status-installed:checked) input[name="status_local"] {
+    display: none;
+}
+
+
+#modal-add-new-or-edit-plate .modal-header strong::after {
+    content: 'Adicionar';
+}
+#modal-add-new-or-edit-plate button[type=submit]::before {
+    content: '\2b';
+    font-family: 'Font Awesome 6 Pro';
+    font-weight: 900;
+}
+#modal-add-new-or-edit-plate button[type=submit]::after {
+    content: ' Adicionar';
+}
+
+#modal-add-new-or-edit-plate[data-mode=edit] .modal-header strong::after {
+    content: 'Editar';
+}
+#modal-add-new-or-edit-plate[data-mode=edit] button[type=submit]::before {
+    content: '\f0c7';
+    font-family: 'Font Awesome 6 Pro';
+    font-weight: 900;
+}
+#modal-add-new-or-edit-plate[data-mode=edit] button[type=submit]::after {
+    content: ' Salvar';
+}
+

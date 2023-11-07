@@ -1,0 +1,112 @@
+{% macro render_plate_row(row, date, datetime, is_admin) -%}
+<tr>
+    <td>{{ row.id }}</td>
+    <td>{{ row.created_by_operator }}</td>
+    <td>
+        {% if row.certificate_url %}
+        <a target="_blank" href="{{ row.certificate_url }}">{{ row.certificate_number }}</a>
+        {% else %}
+        {{ row.certificate_number }}
+        {% endif %}
+    </td>
+    <td>{{ date(row.calibration_date) }}</td>
+    <td>{{ date(row.first_installation_date) or 'SEM INFORMAÇÃO' }}</td>
+    <td>{{ date(row.due_date) }}</td>
+    <td>{{ datetime(row.created_at) }}</td>
+    <td>{{ row.local }} ({{ row.point }})</td>
+    <td>{{ row.internal_diameter_reference }} mm</td>
+    <td>
+        {% if row.status_text == 'REMOVIDA' %}
+        <span class="badge border border-danger text-light p-2">
+            REMOVIDA DIA {{ date(row.status_date) }}
+        </span>
+        {% elif row.status_text == 'RESERVADA' %}
+        <span class="badge border border-warning text-light p-2">
+            RESERVADA EM {{ row.status_local }}
+        </span>
+        {% elif row.status_text == 'AGUARDANDO RETORNO' %}
+        <span class="badge border border-warning text-light p-2">
+            AGUARDANDO RETORNO
+        </span>
+        {% elif row.status_text == 'INSTALADA/OPERANDO' %}
+        <span class="badge border border-success text-light p-2">
+            INSTALADA EM {{ date(row.status_date) }}
+        </span>
+        {% else %}
+        <span class="text-danger">
+            {{ row.status_text }}
+        </span>
+        {% endif %}
+    </td>
+    
+    {% if is_admin %}
+    <td>
+        <span data-bs-toggle="modal" data-bs-target="#modal-add-new-or-edit-plate">
+            <button class="btn btn-sm me-1 text-secondary" data-bs-toggle="tooltip" onclick="ui.plate_cards.prepare_to_edit(this)" data-bs-placement="bottom" title="Editar">
+                <i class="fa-solid fa-pen"></i>
+            </button>
+        </span>
+
+        <span data-bs-toggle="modal" data-bs-target="#modal-delete">
+            <button class="btn btn-sm btn-outline-danger" onclick="ui.plate_cards.prepare_to_remove(this)" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Deletar">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </span>
+    </td>
+    {% endif %}
+</tr>
+{%- endmacro -%}
+
+<div class="plate-card">
+    <div class="plate-card-header d-flex gap-2 justify-content-around flex-wrap position-relative">
+        <span>
+            <b>Tipo:</b> <span class="text-nowrap">
+                {% if rows[0].type == 'VPP' %}
+                Válvula Porta Placa (VPP)
+                {% elif rows[0].type == 'VEF' %}
+                Válvula Entre Flanges (VEF)
+                {% else %}
+                <span class="text-danger">{{ rows[0].type }}</span>
+                {% endif %}
+            </span>
+        </span>
+
+        <span>
+            <b class="text-nowrap">Nº de série:</b> <span id="serial_number">{{rows[0].serial_number}}</span>
+        </span>
+
+        <span>
+            <b class="text-nowrap">Diâmetro externo:</b> {{ rows[0].external_diameter }} pol.
+        </span>
+
+        {% if is_admin %}
+        <div class="position-absolute h-100" data-bs-toggle="modal" data-bs-target="#modal-replace-plate" onclick="ui.plate_cards.prepare_to_replace(this)">
+            <button id="add-new-plate-replacement" data-bs-toggle="tooltip" data-bs-placement="bottom" class="btn h-100 px-4 px-sm-3 text-secondary fs-6" title="Substituição de placa">
+                <i class="fa-regular fa-layer-plus"></i>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="plate-card-row">
+        <table class="text-center w-100">
+            <tr>
+                <th>ID</th>
+                <th>Operador</th>
+                <th>Nº de certificado</th>
+                <th>Data de calibração</th>
+                <th>Primeira instalação</th>
+                <th>Vencimento</th>
+                <th>Criação do registro</th>
+                <th><i class="fa-light fa-location-dot"></i> Local / Ponto</th>
+                <th>Diâmetro ref. interno</th>
+                <th>Situação</th>
+                {% if is_admin %}<th>Ações</th>{% endif %}
+            </tr>
+
+            {% for row in rows %}
+            {{ render_plate_row(row, date, datetime, is_admin) }}
+            {% endfor %}
+        </table>
+    </div>
+</div>

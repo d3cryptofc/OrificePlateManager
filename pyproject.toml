@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "orificeplatemanager"
+version = "0.1.0"
+description = "Gestor de Placa de Orifício"
+authors = ["Lelzin λ"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+flask = "^2.3.3"
+gunicorn = "^21.2.0"
+gevent = "^23.9.0.post1"
+flask-restful = "^0.3.10"
+flask-sqlalchemy = "^3.0.5"
+pytz = "^2023.3.post1"
+sqlalchemy-utc = "^0.14.0"
+flask-session = "^0.5.0"
+sqlalchemy-serializer = "^1.4.1"
+psycopg2-binary = "^2.9.9"
+pydantic = "^1"
+flask-pydantic = "^0.11.0"
+types-sqlalchemy = "^1.4.53.38"
+python-dotenv = "^1.0.0"
+
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^6.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
