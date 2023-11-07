@@ -1,0 +1,10 @@
+.python-version
+.vscode
+.gitignore
+.git
+.dockerignore
+.venv
+**/__pycache__
+tmp
+docker
+Makefile

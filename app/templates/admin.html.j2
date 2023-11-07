@@ -1,0 +1,60 @@
+{% extends 'base.html.j2' %}
+
+{% block head %}
+    <title>Administração</title>
+    <style>
+        body {
+            height: 100vh;
+            min-height: 400px;
+        }
+        .login-container {
+            max-width: 400px;
+        }
+    </style>
+{% endblock head %}
+
+{% block body %}
+<body class="bg-dark-1 d-flex flex-column justify-content-center align-items-center px-2">
+    <div class="bg-dark-2 p-5 rounded login-container w-100">
+        <div class="mb-3">
+            <p class="text-center text-secondary fw-bold mb-0 user-select-none">Administração</p>
+            <p class="text-center text-danger fs-6 mb-0 d-none" id="error-message"></p>
+        </div>
+
+        <form method="POST">
+            <label class="text-secondary mb-2 fs-6">Login:</label>
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-dark-4 border-0 text-secondary">
+                    <i class="fa-regular fa-fingerprint"></i>
+                </span>
+                <input required minlength="5" maxlength="30" autocomplete="off" name="login" type="text" class="form-control bg-dark-4 border-0 border-start border-secondary text-secondary fs-6 py-2">
+            </div>
+
+            <label class="text-secondary mb-2 fs-6">Senha:</label>
+            <div class="input-group mb-4">
+                <span required class="input-group-text bg-dark-4 border-0 text-secondary">
+                    <i class="fa-duotone fa-key"></i>
+                </span>
+                <input required minlength="8" maxlength="30" name="password" type="password" class="form-control bg-dark-4 border-0 border-start border-secondary text-secondary fs-6 py-2">
+            </div>
+
+            <input type="checkbox" id="remember-username">
+            <label for="remember-username" class="text-secondary fs-6 user-select-none">Lembrar do nome de usuário.</label>
+
+            <button type="submit" class="btn btn-sm btn-outline-danger float-end">
+                <span id="text-login">
+                    <i class="fa-duotone fa-right-to-bracket"></i>
+                    Entrar
+                </span>
+
+                <span class="d-none" id="text-entering">
+                   <span class="spinner-border spinner-border-sm"></span>
+                    Entrando..
+                </span>
+            </button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="{{ url_for('static', filename='admin.js') }}"></script>
+</body>
+{% endblock body %}

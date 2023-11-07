@@ -1,0 +1,20 @@
+{% extends 'base.html.j2' %}
+
+{% block head %}
+    <title>Sessão expirada!</title>
+{% endblock head %}
+
+{% block body %}
+<body class="bg-dark-1 d-flex justify-content-center align-items-center px-3" style="height: 100vh; min-height: 400px">
+    <div>
+        <h1 class="text-light text-center">Infelizmente sua sessão expirou!</h1>
+        <p class="text-secondary text-center">Faça login novamente para poder acessar este recurso.</p>
+    </div>
+
+    <script>
+    setTimeout(() => {
+        location.href = '/admin'
+    }, 5000);
+    </script>
+</body>
+{% endblock body %}
