@@ -72,7 +72,7 @@
         </span>
 
         <span>
-            <b class="text-nowrap">Nº de série:</b> {{rows[0].serial_number}}
+            <b class="text-nowrap">Nº de série:</b> <span id="serial_number">{{rows[0].serial_number}}</span>
         </span>
 
         <span>
@@ -80,7 +80,7 @@
         </span>
 
         {% if is_admin %}
-        <div class="position-absolute h-100" data-bs-toggle="modal" data-bs-target="#modal-replace-plate">
+        <div class="position-absolute h-100" data-bs-toggle="modal" data-bs-target="#modal-replace-plate" onclick="ui.plate_cards.prepare_to_replace(this)">
             <button id="add-new-plate-replacement" data-bs-toggle="tooltip" data-bs-placement="bottom" class="btn h-100 px-4 px-sm-3 text-secondary fs-6" title="Substituição de placa">
                 <i class="fa-regular fa-layer-plus"></i>
             </button>

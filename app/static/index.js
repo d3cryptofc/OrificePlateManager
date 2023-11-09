@@ -25,7 +25,13 @@ const API = {
             data: JSON.stringify(data)
         });
     },
-    replace(){},
+    replace(data){
+        return $.ajax(this.endpoint, {
+            method: 'PUT',
+            contentType: this.mimetype,
+            data: JSON.stringify(data)
+        });
+    },
     edit(data){
         return $.ajax(this.endpoint, {
             method: 'PATCH',
@@ -193,6 +199,15 @@ const ui = {
                     element.val(value);
                 }
             }
+        },
+
+        prepare_to_replace(button_element){
+            const plate_card_header = button_element.parentElement;
+
+            this.action_data = {
+                serial_number: plate_card_header.querySelector('#serial_number').innerText,
+                table: plate_card_header.parentElement.querySelector('table tbody')
+            }
         }
     },
 
@@ -355,6 +370,41 @@ $('#modal-add-new-or-edit-plate form').on('submit', async event => {
     .catch(ui.on_request_error)
     .always(() => ui.loading.hide());
 })
+
+
+// Evento acionado ao enviar formulário no modal de substituir placa.
+const modal_replace_plate = new bootstrap.Modal($('#modal-replace-plate'));
+$('#modal-replace-plate form').on('submit', async event => {
+    event.preventDefault();
+    const fields = Object.fromEntries($(event.target).serializeArray().map(item => [item.name, item.value || null]))
+
+    modal_replace_plate.hide();
+    ui.loading.show()
+    fields.serial_number = ui.plate_cards.action_data.serial_number;
+
+    await API.replace(fields)
+    .then(response => {
+        event.target.reset();
+        for(const row_element of ui.plate_cards.action_data.table.querySelectorAll('tr:has(td)')){
+            const row_id = parseInt(row_element.querySelector('td').innerText);
+            const plate_row = ui.plate_cards.plates[row_id];
+            const now = new Date();
+
+            if(plate_row.status_text != 'REMOVIDA'){
+                plate_row.status_text = 'REMOVIDA';
+                plate_row.status_date = [now.getFullYear(), now.getMonth(), now.getDate()].join('-');
+                plate_row.status_local = null;
+                row_element.outerHTML = ui.plate_cards.render_row(plate_row);
+            }
+        }
+        ui.plate_cards.plates[response.plate.id] = response.plate;
+        ui.plate_cards.action_data.table.innerHTML += ui.plate_cards.render_row(response.plate);
+        ui.toasts.show(response.message);
+        ui.multiselect.reload_options();
+    })
+    .catch(ui.on_request_error)
+    .always(() => ui.loading.hide());
+});
 
 
 async function main(){

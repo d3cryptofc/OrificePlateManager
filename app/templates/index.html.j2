@@ -158,6 +158,84 @@
     </div>
 
     {% if is_admin -%}
+    <!-- Modal: Replace plate -->
+    <div class="modal fade" id="modal-replace-plate" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form class="modal-content bg-dark-2 text-secondary">
+                <div class="modal-header fs-6 border-dark">
+                    <strong class="text-center w-100">Substituição</strong>
+                </div>
+
+                <div class="modal-body fs-6 pt-4 pb-0 fw-bold row gy-3">
+                    <div class="col col-12 col-md-6">
+                        <label class="w-100">
+                            <div class="mb-2 fw-bold">Nº de certificado:</div>
+                            <input
+                                type="text"
+                                class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                placeholder="Ex: XXXXXXXXXXXX"
+                                required
+                                name="certificate_number"
+                                minlength="9"
+                                maxlength="20"
+                            >
+                        </label>
+                    </div>
+
+                    <div class="col col-12 col-md-6">
+                        <label class="w-100">
+                            <div class="mb-2 fw-bold">URL do certificado:</div>
+                            <input
+                                required
+                                pattern="https://.*"
+                                type="url"
+                                class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                placeholder="Ex: https://exemplo.com"
+                                name="certificate_url"
+                                maxlength="255"
+                            >
+                        </label>
+                    </div>
+
+                    <div class="col col-12">
+                        <label class="w-100">
+                            <div class="fw-bold">Diâmetro ref. interno:</div>
+                            <input
+                                class="form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                                type="number"
+                                name="internal_diameter_reference"
+                                placeholder="Ex: 24,48mm"
+                                step="0.01"
+                                required
+                            > 
+                        </label>
+                    </div>
+
+                    <div class="col col-12">
+                        <label class="w-100">
+                            <div class="mb-2 fw-bold">Motivo da substituição:</div>
+                            <textarea
+                                style="min-height: 120px;"
+                                minlength="10"
+                                maxlength="100"
+                                required
+                                name="reason"
+                                class="mw-100 form-control form-control-sm bg-dark-4 border-dark mt-2 text-light"
+                            ></textarea>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="reset" class="btn btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="fa-regular fa-layer-plus"></i>
+                        Substituir
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal: Delete plate registry -->
     <div class="modal fade" id="modal-delete" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -167,7 +245,10 @@
                 </div>
                 <div class="modal-footer border-0">
                     <button type="button" class="btn btn-sm text-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal" id="confirm-delete-plate-row"><i class="fa-duotone fa-trash"></i> Confirmar</button>
+                    <button type="button" class="btn btn-sm btn-danger" data-bs-dismiss="modal" id="confirm-delete-plate-row">
+                        <i class="fa-duotone fa-trash"></i>
+                        Deletar
+                    </button>
                 </div>
             </div>
         </div>
@@ -289,7 +370,6 @@
                                     required
                                 > 
                             </label>
-                            
                         </div>
 
                         <div class="col col-12 col-md-6 col-lg-4">
